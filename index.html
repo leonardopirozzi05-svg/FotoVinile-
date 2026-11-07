@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Nostro Concerto - Live Vinyl</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0b0b0e;
+            color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            color: #ffffff;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+        /* Player & Vinyl Stage */
+        .player-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        /* Giradischi stile vinile */
+        .vinyl {
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, #111 0%, #1a1a1a 40%, #000 100%);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 8s linear infinite;
+            animation-play-state: paused; /* Fermo di default finché non premi play */
+        }
+
+        .vinyl.playing {
+            animation-play-state: running;
+        }
+
+        /* Solchi del vinile */
+        .vinyl::before {
+            content: "";
+            position: absolute;
+            top: 15px; left: 15px; right: 15px; bottom: 15px;
+            border: 1px dashed rgba(255,255,255,0.08);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .vinyl::after {
+            content: "";
+            position: absolute;
+            top: 45px; left: 45px; right: 45px; bottom: 45px;
+            border: 1px dashed rgba(255,255,255,0.06);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Etichetta centrale del vinile */
+        .label-center {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #e11d48, #be123c);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+            border: 2px solid #fff;
+            z-index: 2;
+        }
+
+        .label-center span {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .label-center .hole {
+            width: 14px;
+            height: 14px;
+            background-color: #0b0b0e;
+            border-radius: 50%;
+            margin-top: 4px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* Sezione foto / slideshow */
+        .photo-frame {
+            width: 100%;
+            max-width: 320px;
+            height: 200px;
+            background-color: #18181b;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            border: 1px solid #27272a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease;
+        }
+
+        .photo-placeholder {
+            text-align: center;
+            color: #71717a;
+            padding: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* Controlli */
+        .controls {
+            width: 100%;
+            max-width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+            z-index: 10;
+        }
+
+        .btn {
+            background-color: #e11d48;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background-color: #27272a;
+            color: #f4f4f5;
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #3f3f46;
+        }
+
+        /* Input file nascosto */
+        #file-input {
+            display: none;
+        }
+
+        .footer-note {
+            font-size: 0.75rem;
+            color: #52525b;
+            text-align: center;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Live Set 🎸</h1>
+        <p>Il nostro vinile digitale</p>
+    </header>
+
+    <!-- Vinile che gira -->
+    <div class="player-container">
+        <div class="vinyl" id="vinyl">
+            <div class="label-center">
+                <span>STASERA</span>
+                <div class="hole"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cornice per le foto del concerto -->
+    <div class="photo-frame" id="photo-frame">
+        <div class="photo-placeholder">
+            Nessuna foto caricata.<br>Premi il tasto sotto per aggiungere i vostri scatti! 📸
+        </div>
+    </div>
+
+    <!-- Pulsanti di controllo -->
+    <div class="controls">
+        <button class="btn" id="play-btn">▶ Gira il Vinile & Suona</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('file-input').click()">➕ Aggiungi Foto</button>
+        <input type="file" id="file-input" accept="image/*" multiple>
+    </div>
+
+    <div class="footer-note">Creato apposta per te ❤️</div>
+
+    <script>
+        const vinyl = document.getElementById('vinyl');
+        const playBtn = document.getElementById('play-btn');
+        const fileInput = document.getElementById('file-input');
+        const photoFrame = document.getElementById('photo-frame');
+
+        let isPlaying = false;
+        let photos = [];
+        let currentPhotoIndex = 0;
+        let slideshowInterval = null;
+
+        // Audio scoppiettio vinile finto (Web Audio API)
+        let audioCtx = null;
+        let noiseNode = null;
+
+        function startVinylAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            // Crea un leggero fruscio bianco stile vinile
+            if (!noiseNode) {
+                const bufferSize = audioCtx.sampleRate * 2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.02; // Fruscio basso
+                }
+                noiseNode = audioCtx.createBufferSource();
+                noiseNode.buffer = buffer;
+                noiseNode.loop = true;
+                
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 1000;
+
+                noiseNode.connect(filter);
+                filter.connect(audioCtx.destination);
+                noiseNode.start();
+            }
+        }
+
+        function stopVinylAudio() {
+            if (noiseNode) {
+                noiseNode.stop();
+                noiseNode.disconnect();
+                noiseNode = null;
+            }
+        }
+
+        // Tasto Play / Pause
+        playBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                vinyl.classList.add('playing');
+                playBtn.textContent = '⏸ Pausa Vinile';
+                startVinylAudio();
+                if (photos.length > 0 && !slideshowInterval) {
+                    startSlideshow();
+                }
+            } else {
+                vinyl.classList.remove('playing');
+                playBtn.textContent = '▶ Gira il Vinile & Suona';
+                stopVinylAudio();
+                stopSlideshow();
+            }
+        });
+
+        // Caricamento foto dal telefono
+        fileInput.addEventListener('change', (e) => {
+            const files = e.target.files;
+            if (files.length > 0) {
+                for (let file of files) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        photos.push(event.target.result);
+                        if (photos.length === 1) {
+                            showPhoto(0);
+                            if (isPlaying) startSlideshow();
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        function showPhoto(index) {
+            if (photos.length === 0) return;
+            photoFrame.innerHTML = `<img src="${photos[index]}" alt="Ricordo concerto">`;
+        }
+
+        function startSlideshow() {
+            if (slideshowInterval) clearInterval(slideshowInterval);
+            slideshowInterval = setInterval(() => {
+                if (photos.length > 0) {
+                    currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+                    showPhoto(currentPhotoIndex);
+                }
+            }, 3000); // Cambia foto ogni 3 secondi
+        }
+
+        function stopSlideshow() {
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+                slideshowInterval = null;
+            }
+        }
+    </script>
+</body>
+</html>
